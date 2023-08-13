@@ -4,8 +4,8 @@
 
 class Domains::Message
 
-  include Domains::Helper
   class << self
+    include Domains::Helper
 
     def singleton_method_added(name)
       return if name == :singleton_method_added
