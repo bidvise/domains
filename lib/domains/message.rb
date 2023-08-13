@@ -5,7 +5,6 @@
 class Domains::Message
 
   class << self
-    extend T::Sig
 
     def singleton_method_added(name)
       return if name == :singleton_method_added
