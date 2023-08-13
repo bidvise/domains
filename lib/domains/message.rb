@@ -4,6 +4,7 @@
 
 class Domains::Message
 
+  include Domains::Helper
   class << self
 
     def singleton_method_added(name)

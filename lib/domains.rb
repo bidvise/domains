@@ -7,6 +7,7 @@ module Domains
   class ResourceNotFoundError < Error; end
 end
 
+require_relative "domains/helper"
 require_relative "domains/version"
 require_relative "domains/message"
 require_relative "domains/schema"
