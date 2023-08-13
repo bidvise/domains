@@ -4,8 +4,7 @@ module Domains
   class Error < StandardError; end
 
   class InvalidInputError < Error; end
-  class SiteNotFoundError < Error; end
-  class RecordNotFoundError < Error; end
+  class ResourceNotFoundError < Error; end
 end
 
 require_relative "domains/version"
