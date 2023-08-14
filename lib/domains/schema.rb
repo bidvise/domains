@@ -1,9 +1,14 @@
 class Domains::Schema
   class RequiredFieldsMissingError < Domains::Error; end
+
   class FieldTypeMismatchError < Domains::Error; end
+
   class EmptyFieldError < Domains::Error; end
+
   class UnpermittedFieldError < Domains::Error; end
+
   class IncorrectSchemaFormat < Domains::Error; end
+
   class IncorrectDataFormat < Domains::Error; end
 
   UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.freeze
@@ -33,10 +38,15 @@ class Domains::Schema
   end
 
   # Define a field containing an embedded sub-schema
-  def self.embed(mod, name)
+  def self.embed(name, mod)
     raise IncorrectSchemaFormat, "Attempted to embed non-schema module #{mod.inspect}" unless mod.respond_to?(:schema)
 
     self.field(name, :value_object, { schema: mod.schema })
+  end
+
+  def self.embed_list(name, mod)
+    raise IncorrectSchemaFormat, "Attempted to embed non-schema module #{mod.inspect}" unless mod.respond_to?(:schema)
+    self.field(name, :list, { schema: mod.schema })
   end
 
   # Look at the created schema as a PORO
@@ -81,12 +91,15 @@ class Domains::Schema
   end
 
   private_class_method def self.validate_type(field, value, require_strictly: false)
+    return true if value.nil?
     case field[:type]
     when :string
       raise build_err(field, value, "string") unless value.is_a?(String)
       raise EmptyFieldError, "String field #{field[:name]} may not be empty" if field.options[:empty] == false && value.blank?
     when :uuid
       raise build_err(field, value, "uuid") unless value.is_a?(String) && UUID_REGEX.match?(value)
+      # when :list
+      #   raise build_err(field, value, "list") unless value.is_a?(Array)
     when :integer
       raise build_err(field, value, "integer") unless value.is_a?(Integer)
     when :boolean
@@ -97,6 +110,13 @@ class Domains::Schema
       raise build_err(field, value, "one of the possibilities in the enum") unless field.options[:enum_list].include?(value.to_sym)
     when :list
       raise build_err(field, value, "list") unless value.is_a?(Array)
+      if field.options[:list_type]
+        if field.options[:list_type] == :string
+          raise build_err(field, value, "list of strings") unless value.all? { |v| v.is_a?(String) }
+        else
+          raise StandardError, "Unknown list type #{field.options[:list_type]}"
+        end
+      end
     when :reference
       # TODO
       raise build_err(field, value, "reference") unless value.is_a?(Object)
